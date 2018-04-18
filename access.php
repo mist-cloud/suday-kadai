@@ -1,4 +1,5 @@
 <?php
+/*XAMMPの設定ではパスワードは空欄で問題ない*/
 $USER       =   'root';
 $PW         =   '';
 $dnsinfo    =   "mysql:dbname=salesmanagement;host=localhost;charset=utf8";
