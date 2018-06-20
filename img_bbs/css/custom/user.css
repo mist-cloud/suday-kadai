@@ -1,0 +1,27 @@
+@charset "utf-8";
+
+.container .page-header{
+	border: inherit;
+	padding-bottom: 5px;	
+}
+.container .well{
+	-webkit-box-shadow: none;
+	box-shadow: none;
+}
+.upImg{
+  max-width: 100%;
+}
+.day{
+  color: #aaa;
+}
+.posts h2{
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 20px;
+}
+.posts p{
+  font-size: 16px;
+}
+.posts .day{
+  font-size: 14px;
+}
