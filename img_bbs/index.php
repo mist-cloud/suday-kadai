@@ -7,12 +7,12 @@ $db     =   new DB();
 date_default_timezone_set("Asia/Tokyo");
 //現在時刻をエポックタイムラインスタンプ(UNIXタイム)を得る
 $now = time();
-$regist = date("Y/m/d H:i:s", $now)
+$regist = date("Y/m/d H:i:s", $now);
 
 //レコードを追加する
 if(isset($_POST['insert'])){
-    $sql    =   "INSERT INTO post (title,text,regist_date) VALUES(?,?,$regist)";
-    $array  =   array($_POST['title'],$_POST['text'],$_POST['image']);
+    $sql    =   "INSERT INTO post (title,text,regist_date) VALUES(?,?,?)";
+    $array  =   array($_POST['title'],$_POST['text'],$regist);
     $db->executeSQL($sql,$array);
 }
 //レコードを表示する
