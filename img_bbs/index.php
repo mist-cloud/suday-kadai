@@ -3,6 +3,10 @@
 require_once('db.php');
 $db     =   new DB();
 
+//save_jpegクラスを読み込み
+require_once('save_jpeg.php');
+$sj		=	new save_jpeg();
+
 //タイムゾーンを明示的に指定する
 date_default_timezone_set("Asia/Tokyo");
 //現在時刻をエポックタイムラインスタンプ(UNIXタイム)を得る
@@ -12,7 +16,8 @@ $regist = date("Y/m/d H:i:s", $now);
 //レコードを追加する
 if(isset($_POST['insert'])){
     $sql    =   "INSERT INTO post (title,text,regist_date) VALUES(?,?,?)";
-    $array  =   array($_POST['title'],$_POST['text'],$regist);
+	$array  =   array($_POST['title'],$_POST['text'],$regist);
+	$sj->save();
     $db->executeSQL($sql,$array);
 }
 //レコードを表示する

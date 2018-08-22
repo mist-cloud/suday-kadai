@@ -4,7 +4,7 @@ class DB{
     private $PW     =   "";
     private $dns    =   "mysql:dbname=img_bbs;host=localhost;charset=utf8";
     
-    private function Connectdb(){
+    private function Connectdb(){   //データベースに接続する
         try {
             $pdo    =   new PDO($this->dns,$this->USER,$this->PW);
             return $pdo;
@@ -13,7 +13,7 @@ class DB{
         }
     }
     
-    public function executeSQL($sql,$array){
+    public function executeSQL($sql,$array){    //SQL文を実行する
         try{
             if(!$pdo = $this->Connectdb())return false;
             $stmt   =   $pdo->prepare($sql);

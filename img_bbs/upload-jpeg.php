@@ -5,8 +5,8 @@
 //$type   =   finfo_file($f, $file);
 //echo    "$file --- $type";
 
-//ファイルがアップロードされたか調べる????
-//var_dump(isset($_FILES["upfile"])); テスト用
+//ファイルがアップロードされたか調べる
+//var_dump(isset($_FILES["upfile"]));   //テスト用
 if (isset($_FILES["upfile"])){
     save_jpeg();
 } else {
