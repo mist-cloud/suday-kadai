@@ -3,10 +3,6 @@
 require_once('db.php');
 $db     =   new DB();
 
-//save_jpegクラスを読み込み
-require_once('save_jpeg.php');
-$sj		=	new save_jpeg();
-
 //タイムゾーンを明示的に指定する
 date_default_timezone_set("Asia/Tokyo");
 //現在時刻をエポックタイムラインスタンプ(UNIXタイム)を得る
@@ -15,13 +11,20 @@ $regist = date("Y/m/d H:i:s", $now);
 
 //レコードを追加する
 if(isset($_POST['insert'])){
-    $sql    =   "INSERT INTO post (title,text,regist_date) VALUES(?,?,?)";
-	$array  =   array($_POST['title'],$_POST['text'],$regist);
-	$sj->save();
+	$sql    =   "INSERT INTO post (title,text,image,regist_date) VALUES(?,?,?,?)";
+	//ファイルのパスを指定する
+	$tmp_file   =   $_FILES["image"]["tmp_name"];
+	$save_file  =   dirname(__FILE__).'/test.jpeg'; //ファイル名は将来的には日付に変更したい。画像の保存先の指定、ファイル名の指定。__FILE__は定数。開いているこのファイルのパスとファイル名。dirname().'';でファイル名の部分を置き換えている。
+	$image_url	=	'test.jpeg'; //ファイル名は将来的には日付に変更したい。htmlの表示に使ってる。
+	//ファイルを指定ディレクトリに保存
+	if (!move_uploaded_file($tmp_file, $save_file)) {
+		$error = "アップロードに失敗しました。"; //配列でやるといいかも。格納される変数が一つ以上あるとエラーエッセージが表示されるif文。バリデーション機能？
+		}
+	$array  =   array($_POST['title'],$_POST['text'],$image_url,$regist);
     $db->executeSQL($sql,$array);
 }
 //レコードを表示する
-$sql    =   "SELECT * FROM post";
+$sql    =   "SELECT * FROM post ORDER BY id DESC"; // ORDER BY id DESC　はpostテーブルのidの降順で読み出す追加の記述。DESCは降順の意味。
 $res    =   $db->executeSQL($sql,null);
 $recordlist = "";
 while($row = $res->fetch(PDO::FETCH_ASSOC)){
@@ -63,14 +66,16 @@ while($row = $res->fetch(PDO::FETCH_ASSOC)){
 					<form class="form-horizontal" action="" method="post" enctype="multipart/form-data">
 						<div class="row">
 							<div class="col-lg-12">
-
+								
+								<!-- 画像のアップロードエラーをここに表示したい -->
+								
 								<!-- 投稿に成功したときだけ表示するよう変更しましょう -->
-								<p class="alert alert-success mb10" role="alert">
+								<p class="alert alert-success mb10" role="alert" style="display:none;"><!-- display:none;で非表示 -->
 									投稿しました。
 								</p>
 
 								<!-- 入力エラーがあるときだけ表示するよう変更しましょう -->
-								<p class="alert alert-danger mb10" role="alert">
+								<p class="alert alert-danger mb10" role="alert" style="display:none;"><!-- display:none;で非表示 -->
 									本文は500文字までにしてください。<br>
 									画像は.jpg、.gif、.pngのいずれかにしてください。
 								</p>
@@ -97,6 +102,7 @@ while($row = $res->fetch(PDO::FETCH_ASSOC)){
 				
 				<div class="posts">
 				    <?php echo $recordlist?>
+
 					<!-- /well　サンプル 
 					<div class="well">
 						<div class="row">

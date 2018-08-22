@@ -1,4 +1,4 @@
-<?php
+<?php//現在このソースは使っていない。将来的には複数のfunctionでシンプルな処理に分けたい。
 class save_jpeg {
     public function save(){
         //ファイルのパスを指定する
