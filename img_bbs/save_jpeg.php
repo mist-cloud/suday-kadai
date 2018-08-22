@@ -3,7 +3,7 @@ class save_jpeg {
     public function save(){
         //ファイルのパスを指定する
         $tmp_file   =   $_FILES["image"]["tmp_name"];
-        $save_file  =   dirname(__FILE__).'/test.jpeg';
+        $save_file  =   dirname(__FILE__).'/test.jpeg'; // __FILE__は定数。開いているこのファイルのパスとファイル名。dirname().'';でファイル名の部分を置き換えている。
         //指定ファイルがアップロードされたものかチェック
         if (!is_uploaded_file($tmp_file)) {
         echo "アップロードされたファイルが不正です。";
