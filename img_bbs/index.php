@@ -11,17 +11,33 @@ $regist = date("Y/m/d H:i:s", $now);
 
 //レコードを追加する
 if(isset($_POST['insert'])){
-	$sql    =   "INSERT INTO post (title,text,image,regist_date) VALUES(?,?,?,?)";
-	//ファイルのパスを指定する
-	$tmp_file   =   $_FILES["image"]["tmp_name"];//アップロードされて一時フォルダに保存されたファイルのパス
-	$save_file  =   dirname(__FILE__).'/test.jpeg'; //ファイル名は将来的には日付に変更したい。画像の保存先の指定、ファイル名の指定。__FILE__は定数。開いているこのファイルのパスとファイル名。dirname().'';でファイル名の部分を置き換えている。
-	$image_url	=	'test.jpeg'; //ファイル名は将来的には日付に変更したい。htmlの表示に使ってる。
-	//ファイルを指定ディレクトリに保存
-	if (!move_uploaded_file($tmp_file, $save_file)) {
-		$error = "アップロードに失敗しました。"; //配列でやるといいかも。格納される変数が一つ以上あるとエラーエッセージが表示されるif文。バリデーション機能？
+	$db->beginTransaction();
+  	try {
+		$sql    =   "INSERT INTO post (title,text,regist_date) VALUES(?,?,?)";
+		$array  =   array($_POST['title'],$_POST['text'],$regist);
+		$db->executeSQL($sql,$array); //タイトルとテキスト、投稿日時を一時的に実行
+		$post_id = $db->lastInsertId(); //投稿したpostの最新のidを変数に代入
+		//ファイルのパスを指定する
+		$tmp_file   =   $_FILES["image"]["tmp_name"]; //アップロードされて一時フォルダに保存されたファイルのパス
+		$save_file  =   dirname(__FILE__)."/{$post_id}.jpeg"; //画像の移動先の指定、ファイル名の指定。__FILE__は定数。開いているこのファイルのパスとファイル名。dirname().'';でファイル名の部分を置き換えている。
+		$image_url	=	"{$post_id}.jpeg"; //画像を表示するためのパス。SQLに保存されるパス。
+		//ファイルを指定ディレクトリに保存
+		if (!move_uploaded_file($tmp_file, $save_file)) {
+			$error = "アップロードに失敗しました。"; //配列でやるといいかも。格納される変数が一つ以上あるとエラーエッセージが表示されるif文。バリデーション機能？
 		}
-	$array  =   array($_POST['title'],$_POST['text'],$image_url,$regist);
-    $db->executeSQL($sql,$array);
+		//ファイルのパスを上書きするSQL文を準備
+		$sql    =   "UPDATE post SET image = ? WHERE id = {$post_id}";
+		$array  =   array($image_url);
+		/*
+		var_dump($sql);
+		exit;*/
+		$db->executeSQL($sql,$array);
+		$db->commit();
+  	} catch (Exception $e) {
+		// トランザクション取り消し
+		$db->rollBack();
+		throw $e;
+	}
 }
 //レコードを表示する
 $sql    =   "SELECT * FROM post ORDER BY id DESC"; // ORDER BY id DESC　はpostテーブルのidの降順で読み出す追加の記述。DESCは降順の意味。
