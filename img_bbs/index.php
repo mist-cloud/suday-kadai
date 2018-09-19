@@ -32,7 +32,7 @@ if(isset($_POST['insert'])){
 		var_dump($sql);
 		exit;*/
 		$db->executeSQL($sql,$array);
-		$db->commit();
+		$db->commit();//トランザクションをコミット
   	} catch (Exception $e) {
 		// トランザクション取り消し
 		$db->rollBack();
