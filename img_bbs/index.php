@@ -13,7 +13,7 @@ $regist = date("Y/m/d H:i:s", $now);
 if(isset($_POST['insert'])){
 	$sql    =   "INSERT INTO post (title,text,image,regist_date) VALUES(?,?,?,?)";
 	//ファイルのパスを指定する
-	$tmp_file   =   $_FILES["image"]["tmp_name"];
+	$tmp_file   =   $_FILES["image"]["tmp_name"];//アップロードされて一時フォルダに保存されたファイルのパス
 	$save_file  =   dirname(__FILE__).'/test.jpeg'; //ファイル名は将来的には日付に変更したい。画像の保存先の指定、ファイル名の指定。__FILE__は定数。開いているこのファイルのパスとファイル名。dirname().'';でファイル名の部分を置き換えている。
 	$image_url	=	'test.jpeg'; //ファイル名は将来的には日付に変更したい。htmlの表示に使ってる。
 	//ファイルを指定ディレクトリに保存
