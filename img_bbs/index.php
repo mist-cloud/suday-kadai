@@ -8,35 +8,72 @@ date_default_timezone_set("Asia/Tokyo");
 //現在時刻をエポックタイムラインスタンプ(UNIXタイム)を得る
 $now = time();
 $regist = date("Y/m/d H:i:s", $now);
-
+echo '<pre>';print_r($_FILES);echo '</pre>';
 //レコードを追加する
 if(isset($_POST['insert'])){
+	//トランザクション開始
 	$db->beginTransaction();
-  	try {
-		$sql    =   "INSERT INTO post (title,text,regist_date) VALUES(?,?,?)";
-		$array  =   array($_POST['title'],$_POST['text'],$regist);
-		$db->executeSQL($sql,$array); //タイトルとテキスト、投稿日時を一時的に実行
-		$post_id = $db->lastInsertId(); //投稿したpostの最新のidを変数に代入
-		//ファイルのパスを指定する
-		$tmp_file   =   $_FILES["image"]["tmp_name"]; //アップロードされて一時フォルダに保存されたファイルのパス
-		$save_file  =   dirname(__FILE__)."/{$post_id}.jpeg"; //画像の移動先の指定、ファイル名の指定。__FILE__は定数。開いているこのファイルのパスとファイル名。dirname().'';でファイル名の部分を置き換えている。
-		$image_url	=	"{$post_id}.jpeg"; //画像を表示するためのパス。SQLに保存されるパス。
-		//ファイルを指定ディレクトリに保存
-		if (!move_uploaded_file($tmp_file, $save_file)) {
-			$error = "アップロードに失敗しました。"; //配列でやるといいかも。格納される変数が一つ以上あるとエラーエッセージが表示されるif文。バリデーション機能？
+	//エラーチェックのための変数に値を代入
+	$title	=	$_POST["title"];
+	$text	=	$_POST["text"];
+	//エラーメッセージの配列の初期化
+	$errormsg = array();
+	//タイトルの必須チェック
+	if ($title = null) {
+		$errormsg[] = "タイトルを入力してください。";
+	}
+	//テキストの文字数チェック mb_strlenは文字数を得る
+	if (mb_strlen($text) > 500 ) {
+		$errormsg[] = "本文は500文字までにしてください。";
+	}
+	//画像拡張子チェック
+	$extention = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION); //画像の拡張子を取得 PATHINFO_EXTENSIONは定数
+	//var_dump(!in_array($extention,array('jpg','jpeg','gif','png')));
+	//var_dump($extention);
+	//exit;
+
+	//エラーチェックは機能しているがテキストファイルをアップした場合でも画像のエラーが出てしまう。。。if文を使ってUPLOAD_ERR_OKを使って解決する
+	if (!in_array($extention,array('jpg','jpeg','gif','png'))){
+		//!preg_match('/^(gif|jpe?g|png)$/i', $extention)) { preg_matchは正規表現チェック
+		$errormsg[] = "画像は.jpg、.gif、.pngのいずれかにしてください。";
+	}
+	
+	//配列の情報を取り出してエラーメッセージの表示ソースを作成
+	$errors = ""; //表示用の変数を作成
+	foreach($errormsg as $error) { //foreach文のasの後の変数は配列の中身を一個ずつ代入する入れ物
+		$errors .= $error."<br>";
+	}
+
+	// 将来的にif文で$errormsg[]に値が一つも入っていなければ下記のtryを実行するように書き換える！！！！
+	if (empty($errormsg)) {
+		try {
+			$sql    =   "INSERT INTO post (title,text,regist_date) VALUES(?,?,?)";
+			$array  =   array($_POST['title'],$_POST['text'],$regist);
+			$db->executeSQL($sql,$array); //タイトルとテキスト、投稿日時を一時的に実行
+			$post_id = $db->lastInsertId(); //投稿したpostの最新のidを変数に代入
+			//ファイルのパスを指定する
+			$tmp_file   =   $_FILES["image"]["tmp_name"]; //アップロードされて一時フォルダに保存されたファイルのパス
+			$save_file  =   dirname(__FILE__)."/{$post_id}.$extention"; //画像の移動先の指定、ファイル名の指定。__FILE__は定数。開いているこのファイルのパスとファイル名。dirname().'';でファイル名の部分を置き換えている。
+			$image_url	=	"{$post_id}.$extention"; //画像を表示するためのパス。SQLに保存されるパス。
+			//ファイルを指定ディレクトリに保存
+			if (!move_uploaded_file($tmp_file, $save_file)) {
+				$error = "システムエラーです。管理者に報告してください。"; 
+			}
+			//ファイルのパスを上書きするSQL文を準備
+			$sql    =   "UPDATE post SET image = ? WHERE id = {$post_id}";
+			$array  =   array($image_url);
+			
+			$db->executeSQL($sql,$array);
+			$db->commit();//トランザクションをコミット
+		} catch (Exception $e) {
+			// トランザクション取り消し
+			$db->rollBack();
+			throw $e;
+			/*
+			var_dump($extention);
+			exit;
+			*/
 		}
-		//ファイルのパスを上書きするSQL文を準備
-		$sql    =   "UPDATE post SET image = ? WHERE id = {$post_id}";
-		$array  =   array($image_url);
-		/*
-		var_dump($sql);
-		exit;*/
-		$db->executeSQL($sql,$array);
-		$db->commit();//トランザクションをコミット
-  	} catch (Exception $e) {
-		// トランザクション取り消し
-		$db->rollBack();
-		throw $e;
 	}
 }
 //レコードを表示する
@@ -86,15 +123,16 @@ while($row = $res->fetch(PDO::FETCH_ASSOC)){
 								<!-- 画像のアップロードエラーをここに表示したい -->
 								
 								<!-- 投稿に成功したときだけ表示するよう変更しましょう -->
-								<p class="alert alert-success mb10" role="alert" style="display:none;"><!-- display:none;で非表示 -->
+								<p class="alert alert-success mb10" role="alert">
 									投稿しました。
 								</p>
 
-								<!-- 入力エラーがあるときだけ表示するよう変更しましょう -->
-								<p class="alert alert-danger mb10" role="alert" style="display:none;"><!-- display:none;で非表示 -->
-									本文は500文字までにしてください。<br>
-									画像は.jpg、.gif、.pngのいずれかにしてください。
-								</p>
+								<!-- 入力エラーがあるときだけ表示するよう変更しましょう、できた！！！！phpの{}部分は分離させることができる-->
+								<?php if (!empty($errormsg)) { ?>
+									<p class="alert alert-danger mb10" role="alert">
+									<?php echo($errors); ?>
+									</p>
+								<?php } ?>
 
 								<label for="title" class="mt10 mb10">タイトル</label>
 								<input type="text" class="form-control mb10" id="title" name="title">
