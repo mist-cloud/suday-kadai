@@ -8,6 +8,7 @@ date_default_timezone_set("Asia/Tokyo");
 //現在時刻をエポックタイムラインスタンプ(UNIXタイム)を得る
 $now = time();
 $regist = date("Y/m/d H:i:s", $now);
+//画像のステータスをテストでpre表示する
 echo '<pre>';print_r($_FILES);echo '</pre>';
 //レコードを追加する
 if(isset($_POST['insert'])){
@@ -64,6 +65,10 @@ if(isset($_POST['insert'])){
 			$array  =   array($image_url);
 			
 			$db->executeSQL($sql,$array);
+
+			//投稿完了時に出すメッセージをヒアドキュメントで変数に格納
+			$success = "投稿しました。";
+
 			$db->commit();//トランザクションをコミット
 		} catch (Exception $e) {
 			// トランザクション取り消し
@@ -88,7 +93,6 @@ while($row = $res->fetch(PDO::FETCH_ASSOC)){
     $recordlist .= "<p class='day'>{$row['regist_date']}</p>\n";
     $recordlist .= "</div>\n</div>\n</div>\n";
 }
-
 
 ?>
 <!DOCTYPE html>
@@ -122,10 +126,12 @@ while($row = $res->fetch(PDO::FETCH_ASSOC)){
 								
 								<!-- 画像のアップロードエラーをここに表示したい -->
 								
-								<!-- 投稿に成功したときだけ表示するよう変更しましょう -->
-								<p class="alert alert-success mb10" role="alert">
-									投稿しました。
-								</p>
+								<!-- 投稿に成功したときだけ表示するよう変更しましょう、できた！！！ -->
+								<?php if (!empty($success)) { ?>
+									<p class="alert alert-success mb10" role="alert">
+									<?php echo $success; ?>
+									</p>
+								<?php } ?>
 
 								<!-- 入力エラーがあるときだけ表示するよう変更しましょう、できた！！！！phpの{}部分は分離させることができる-->
 								<?php if (!empty($errormsg)) { ?>
