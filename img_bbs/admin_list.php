@@ -15,17 +15,19 @@ while($row = $res->fetch(PDO::FETCH_ASSOC)){
 	$recordlist .= "<td class='text-center'><div class='thumbnail'><img src='{$row['image']}' alt=''></div></td>\n";
 	$recordlist .= "<td class='text-center'>{$row['regist_date']}<br>/<br>{$row['update_date']}</td>\n";
 	$recordlist .= "<td class='text-center'>";
-	$recordlist .= "<input type='button' value='変更' onclick='location.href='admin_edit.html?id='+'1''><br><input type='button' value='削除' onclick='msgDelete('1')'>\n";
+	//ID指定はできた。
+	$recordlist .= "<input type='button' value='変更' name='change' onclick='location.href=\"admin_edit.php?id={$row['id']}\"'><br>\n";
+	$recordlist .= "<input type='button' value='削除' name='delete' onclick='msgDelete(\"{$row['id']}\")'>\n";
 	$recordlist .= "</td>\n";
 	$recordlist .= "</tr>\n";
 }
 
+
 //Sequel Proでデータを消してもidが1に戻らないのは正常。消したデータが何かの拍子で戻った場合誤作動を起こすため。
 //変更と削除ボタンの実装をしたい。変更は$_GETでも良いが、削除は勝手に削除されないように$_POSTにする。
-
-if(isset($_POST[''])){
-	
-}
+//レコードの変更は遷移先のページでパラメータのidを参照して実装する。つまりこのページではこれで問題ない。
+//レコードの削除ページへのリンクは完了。遷移先の画面に遷移したタイミングでデータを消す処理を行う。
+//Basic認証を実装する。
 
 ?>
 
