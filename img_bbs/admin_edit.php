@@ -14,29 +14,27 @@ if(isset($_POST['submit'])){//submitを押されたらアップデートする
 		//ただ今回の場合、エラー表示箇所が1箇所にまとまっていないのでエラーチェックのバリデーションで配列の
 		//$errormsg[]の[]内に何か入れる
 
-
-
 		//トランザクション開始
 		$db->beginTransaction();
 		//エラーチェックのための変数に値を代入
-		$title	=	$_POST["title"];
-		$text	=	$_POST["text"];
+		//$title	=	$_POST["title"];
+		//$text	=	$_POST["text"];
 		//エラーメッセージの配列の初期化
 		$errormsg = array();
 		//タイトルの必須チェック
-		if ($title = null) {
-			$errormsg[1] = "タイトルを入力してください。";
-		}
+		//if ($title = null) {
+		//	$errormsg[1] = "タイトルを入力してください。";
+		//}
 		//テキストの文字数チェック mb_strlenは文字数を得る
-		if (mb_strlen($text) > 500 ) {
-			$errormsg[2] = "本文は500文字までにしてください。";
-		}
+		//if (mb_strlen($text) > 500 ) {
+		//	$errormsg[2] = "本文は500文字までにしてください。";
+		//}
 		//画像拡張子チェック
-		$extention = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION); //画像の拡張子を取得 PATHINFO_EXTENSIONは定数
+		//$extention = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION); //画像の拡張子を取得 PATHINFO_EXTENSIONは定数
 		//エラーチェックは機能しているがテキストファイルをアップした場合でも画像のエラーが出てしまう。。。if文を使ってUPLOAD_ERR_OKを使って解決する
-		if (!in_array($extention,array('jpg','jpeg','gif','png'))){
-			$errormsg[3] = "画像は.jpg、.gif、.pngのいずれかにしてください。";
-		}
+		//if (!in_array($extention,array('jpg','jpeg','gif','png'))){
+		//	$errormsg[3] = "画像は.jpg、.gif、.pngのいずれかにしてください。";
+		//}
 		//今回はこれは使えない気がする
 		//$errors = ""; //表示用の変数を作成
 		//foreach($errormsg as $error) { //foreach文のasの後の変数は配列の中身を一個ずつ代入する入れ物
@@ -46,9 +44,8 @@ if(isset($_POST['submit'])){//submitを押されたらアップデートする
 		// 将来的にif文で$errormsg[]に値が一つも入っていなければ下記のtryを実行するように書き換える！！！！
 		if (empty($errormsg)) {
 			try {
-				$sql	=	"UPDATE post SET title=? text=? image=? regist_date=? WHERE id='$id'";//
+				$sql	=	"UPDATE post SET title=? text=? image=? regist_date=? WHERE id='$id'";
 
-				$sql    =   "INSERT INTO post (title,text,regist_date) VALUES(?,?,?)";
 				$array  =   array($_POST['title'],$_POST['text'],$regist);
 				$db->executeSQL($sql,$array); //タイトルとテキスト、投稿日時を一時的に実行
 				$post_id = $db->lastInsertId(); //投稿したpostの最新のidを変数に代入
@@ -81,7 +78,6 @@ if(isset($_POST['submit'])){//submitを押されたらアップデートする
 			}
 		}
 
-		
 }else{//submitを押されていない場合はレコードを表示する
 	try{
 		//入力済みのレコードを表示する
@@ -91,8 +87,8 @@ if(isset($_POST['submit'])){//submitを押されたらアップデートする
 		while($row = $res->fetch(PDO::FETCH_ASSOC)){//ifに変えてみてもいいかも
 			$recordlist .= "<table class='table table-bordered admin-table'>\n<tbody>\n";
 			$recordlist .= "<tr>\n<th class='th-inverse col-sm-3 col-xs-4'>ID</th>\n<td>{$row['id']}</td>\n</tr>\n";
-			$recordlist .= "<tr>\n<th class='th-inverse'>タイトル</th>\n<td>\n<input type='text' class='form-control' id='inputText' maxlength='50' value='{$row['title']}'>\n<p class='alert alert-danger mt10 mb0'>タイトルは50文字までにしてください。</p>\n</td>\n</tr>\n";
-			$recordlist .= "<tr>\n<th class='th-inverse'>本文</th>\n<td>\n<textarea class='form-control' rows='2' id='textArea'>{$row['text']}</textarea>\n<p class='alert alert-danger mt10 mb0'>本文は500文字までにしてください。</p>\n</td>\n</tr>\n";
+			$recordlist .= "<tr>\n<th class='th-inverse'>タイトル</th>\n<td>\n<input type='text' class='form-control' id='inputText' maxlength='50' value='{$row['title']}' name='title'>\n<p class='alert alert-danger mt10 mb0'>タイトルは50文字までにしてください。</p>\n</td>\n</tr>\n";
+			$recordlist .= "<tr>\n<th class='th-inverse'>本文</th>\n<td>\n<textarea class='form-control' rows='2' id='textArea' name='text'>{$row['text']}</textarea>\n<p class='alert alert-danger mt10 mb0'>本文は500文字までにしてください。</p>\n</td>\n</tr>\n";
 			$recordlist .= "<tr class='tr-img'>\n
 				<th class='th-inverse'>画像</th>\n
 				<td>\n
@@ -118,12 +114,6 @@ if(isset($_POST['submit'])){//submitを押されたらアップデートする
 		return false;
 	}
 }
-
-
-
-
-
-
 
 //print_r($sql);
 //exit;
@@ -155,7 +145,7 @@ if(isset($_POST['submit'])){//submitを押されたらアップデートする
 
 		<div class="row">
 			<div class="col-lg-12">
-			<form action="admin_update.html" method="post" enctype="multipart/form-data">
+			<form action="" method="post" enctype="multipart/form-data">
 				<?php echo $recordlist?>
 				<!--<table class="table table-bordered admin-table">
 					<tbody>
