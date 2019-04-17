@@ -13,32 +13,55 @@ $regist = date("Y/m/d H:i:s", $now);
 
 //条件分岐で処理を分ける
 if(isset($_POST['submit'])){//submitを押されたらアップデートする
-		//トランザクション開始
-		$db->beginTransaction();
-		try {
-			$sql	=	"UPDATE post SET title=? text=? image=? regist_date=? WHERE id='$id'";
-			$array  =   array($_POST['title'],$_POST['text'],$regist);
-			$db->executeSQL($sql,$array); //タイトルとテキスト、投稿日時を一時的に実行
-			//ファイルのパスを指定する
-			$tmp_file   =   $_FILES["image"]["tmp_name"]; //アップロードされて一時フォルダに保存されたファイルのパス
-			$save_file  =   dirname(__FILE__)."/{$id}.$extention"; //画像の移動先の指定、ファイル名の指定。__FILE__は定数。開いているこのファイルのパスとファイル名。dirname().'';でファイル名の部分を置き換えている。
-			$image_url	=	"{$id}.$extention"; //画像を表示するためのパス。SQLに保存されるパス。
-			//ファイルを指定ディレクトリに保存
-			if (!move_uploaded_file($tmp_file, $save_file)) {
-				$error = "システムエラーです。管理者に報告してください。"; 
-			}
-			//ファイルのパスを上書きするSQL文を準備
-			$sql    =   "UPDATE post SET image = ? WHERE id = {$id}";
-			$array  =   array($image_url);
-			$db->executeSQL($sql,$array);
-			//投稿完了時に出すメッセージをヒアドキュメントで変数に格納
-			$success = "投稿しました。";
-			$db->commit();//トランザクションをコミット
-		} catch (Exception $e) {
-			// トランザクション取り消し
-			$db->rollBack();
-			throw $e;
+
+	//トランザクション開始
+	$db->beginTransaction();
+	
+	//エラーチェックのための変数に値を代入
+	$title	=	$_POST["title"];
+	$text	=	$_POST["text"];
+	//エラーメッセージの配列の初期化
+	//$errormsg = array();
+	//タイトルの必須チェック
+	if ($title = null) {
+		$errormsg1 = "<p class='alert alert-danger mt10 mb0'>タイトルは50文字までにしてください。</p>";
+	}
+	//テキストの文字数チェック mb_strlenは文字数を得る
+	if (mb_strlen($text) > 500 ) {
+		$errormsg2 = "<p class='alert alert-danger mt10 mb0'>本文は500文字までにしてください。</p>";
+	}
+	//画像拡張子チェック
+	$extention = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION); //画像の拡張子を取得 PATHINFO_EXTENSIONは定数
+
+	//エラーチェックは機能しているがテキストファイルをアップした場合でも画像のエラーが出てしまう。。。if文を使ってUPLOAD_ERR_OKを使って解決する
+	if (!in_array($extention,array('jpg','jpeg','gif','png'))){
+		$errormsg3 = "<p class='alert alert-danger mt10 mb0'>画像は.jpg、.gif、.pngのいずれかにしてください。</p>";
+	}
+
+	try {
+		$sql	=	"UPDATE post SET title=? text=? image=? regist_date=? WHERE id='$id'";
+		$array  =   array($_POST['title'],$_POST['text'],$regist);
+		$db->executeSQL($sql,$array); //タイトルとテキスト、投稿日時を一時的に実行
+		//ファイルのパスを指定する
+		$tmp_file   =   $_FILES["image"]["tmp_name"]; //アップロードされて一時フォルダに保存されたファイルのパス
+		$save_file  =   dirname(__FILE__)."/{$id}.$extention"; //画像の移動先の指定、ファイル名の指定。__FILE__は定数。開いているこのファイルのパスとファイル名。dirname().'';でファイル名の部分を置き換えている。
+		$image_url	=	"{$id}.$extention"; //画像を表示するためのパス。SQLに保存されるパス。
+		//ファイルを指定ディレクトリに保存
+		if (!move_uploaded_file($tmp_file, $save_file)) {
+			$error = "システムエラーです。管理者に報告してください。"; 
 		}
+		//ファイルのパスを上書きするSQL文を準備
+		$sql    =   "UPDATE post SET image = ? WHERE id = {$id}";
+		$array  =   array($image_url);
+		$db->executeSQL($sql,$array);
+		//投稿完了時に出すメッセージをヒアドキュメントで変数に格納
+		$success = "投稿しました。";
+		$db->commit();//トランザクションをコミット
+	} catch (Exception $e) {
+		// トランザクション取り消し
+		$db->rollBack();
+		throw $e;
+	}
 
 }else{//submitを押されていない場合はレコードを表示する
 	try{
@@ -49,7 +72,13 @@ if(isset($_POST['submit'])){//submitを押されたらアップデートする
 		while($row = $res->fetch(PDO::FETCH_ASSOC)){//ifに変えてみてもいいかも
 			$recordlist .= "<table class='table table-bordered admin-table'>\n<tbody>\n";
 			$recordlist .= "<tr>\n<th class='th-inverse col-sm-3 col-xs-4'>ID</th>\n<td>{$row['id']}</td>\n</tr>\n";
-			$recordlist .= "<tr>\n<th class='th-inverse'>タイトル</th>\n<td>\n<input type='text' class='form-control' id='inputText' maxlength='50' value='{$row['title']}' name='title'>\n<p class='alert alert-danger mt10 mb0'>タイトルは50文字までにしてください。</p>\n</td>\n</tr>\n";
+			$recordlist .= "<tr>\n
+				<th class='th-inverse'>タイトル</th>\n
+				<td>\n
+					<input type='text' class='form-control' id='inputText' maxlength='50' value='{$row['title']}' name='title'>\n
+					<p class='alert alert-danger mt10 mb0'>タイトルは50文字までにしてください。</p>\n
+				</td>\n
+			</tr>\n";
 			$recordlist .= "<tr>\n<th class='th-inverse'>本文</th>\n<td>\n<textarea class='form-control' rows='2' id='textArea' name='text'>{$row['text']}</textarea>\n<p class='alert alert-danger mt10 mb0'>本文は500文字までにしてください。</p>\n</td>\n</tr>\n";
 			$recordlist .= "<tr class='tr-img'>\n
 				<th class='th-inverse'>画像</th>\n
@@ -108,9 +137,9 @@ if(isset($_POST['submit'])){//submitを押されたらアップデートする
 		<div class="row">
 			<div class="col-lg-12">
 				<form action="" method="post" enctype="multipart/form-data">
-					<?php echo $recordlist?>
+					<?php echo $recordlist ?>
 					<div class="mb30">
-						<button type="button" class="btn btn-default" onclick="location.href='admin_list.html'">戻る</button>
+						<button type="button" class="btn btn-default" onclick="location.href='admin_list.php'">戻る</button>
 						<button type="submit" class="btn btn-default" onclick="return confirm('登録します。よろしいですか？');" name="submit">登録</button>
 					</div>
 				</form>
